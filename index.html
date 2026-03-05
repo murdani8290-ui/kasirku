@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KasirKu Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{font-family:'Inter',system-ui,sans-serif;box-sizing:border-box}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:3px}
+::-webkit-scrollbar-track{background:transparent}
+.sidebar-link.active{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;box-shadow:0 4px 15px rgba(79,70,229,.4)}
+.sidebar-link:hover:not(.active){background:rgba(255,255,255,.07)}
+.card{background:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1px solid #f1f5f9;transition:box-shadow .2s}
+.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.btn-p{background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border-radius:12px;padding:10px 20px;font-weight:600;border:none;cursor:pointer;transition:all .15s}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(79,70,229,.4)}
+.btn-p:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-d{background:linear-gradient(135deg,#ef4444,#f87171);color:#fff;border-radius:12px;padding:10px 20px;font-weight:600;border:none;cursor:pointer}
+.btn-s{background:linear-gradient(135deg,#10b981,#34d399);color:#fff;border-radius:12px;padding:10px 20px;font-weight:600;border:none;cursor:pointer}
+.inp{width:100%;padding:10px 14px;border:2px solid #e2e8f0;border-radius:12px;outline:none;font-size:14px;transition:border .2s}
+.inp:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.toast-anim{animation:toastIn .3s ease}
+@keyframes toastIn{from{transform:translateX(120%);opacity:0}to{transform:none;opacity:1}}
+.prod-card{transition:all .12s;cursor:pointer}
+.prod-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.1)}
+.prod-card:active{transform:scale(.97)}
+.modal-bg{background:rgba(15,23,42,.55);backdrop-filter:blur(4px)}
+@media print{.no-print{display:none!important}.print-only{display:block!important}}
+</style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+
+<!-- ===== LOGIN ===== -->
+<div id="loginPage" class="min-h-screen flex items-center justify-center p-4" style="background:linear-gradient(135deg,#0f172a,#1e1b4b,#0f172a)">
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute top-1/4 left-1/4 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-600/20 rounded-full blur-3xl"></div>
+  </div>
+  <div class="relative bg-white/95 backdrop-blur rounded-3xl shadow-2xl w-full max-w-md p-8">
+    <div class="text-center mb-8">
+      <div class="w-20 h-20 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/30"><span class="text-4xl">🏪</span></div>
+      <h1 class="text-3xl font-extrabold text-slate-800">KasirKu Pro</h1>
+      <p class="text-slate-500 mt-1">Aplikasi Kasir ATK & Fotokopi</p>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Username</label>
+        <div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">👤</span><input id="loginUser" class="inp pl-11" placeholder="Masukkan username" autocomplete="off"></div>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+        <div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔒</span><input type="password" id="loginPass" class="inp pl-11" placeholder="Masukkan password"></div>
+      </div>
+      <button onclick="doLogin()" id="btnLogin" class="w-full btn-p py-3.5 text-base flex items-center justify-center gap-2">
+        <span id="loginTxt">Masuk</span>
+        <svg id="loginSpin" class="hidden w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+      </button>
+      <div id="loginErr" class="text-center text-red-500 text-sm hidden mt-2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="appPage" class="hidden h-screen flex">
+
+  <!-- SIDEBAR -->
+  <aside class="w-64 flex-shrink-0 flex flex-col fixed h-full z-40 no-print" style="background:linear-gradient(180deg,#0f172a,#1e1b4b)">
+    <div class="p-5 border-b border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg"><span class="text-xl">🏪</span></div>
+        <div><h1 class="font-extrabold text-white text-lg leading-tight">KasirKu</h1><p class="text-xs text-indigo-300">ATK & Fotokopi</p></div>
+      </div>
+    </div>
+    <nav id="sideNav" class="flex-1 py-3 px-3 space-y-1 overflow-y-auto"></nav>
+    <div class="p-4 border-t border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold" id="avatarIn">A</div>
+        <div class="flex-1 min-w-0"><p class="text-white text-sm font-semibold truncate" id="sName">Admin</p><p class="text-indigo-300 text-xs" id="sRole">Administrator</p></div>
+        <button onclick="doLogout()" class="text-slate-400 hover:text-white transition p-1" title="Logout">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="flex-1 ml-64 flex flex-col">
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between no-print sticky top-0 z-20">
+      <div><h2 id="pgTitle" class="text-xl font-bold text-slate-800">Dashboard</h2><p id="pgSub" class="text-sm text-slate-500"></p></div>
+      <div class="flex items-center gap-4">
+        <button id="printBadgeBtn" onclick="go('print')" class="relative p-2 hover:bg-slate-100 rounded-xl transition">
+          <span class="text-2xl">🖨️</span>
+          <span id="printBadge" class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full min-w-5 h-5 flex items-center justify-center font-bold hidden">0</span>
+        </button>
+        <div class="text-right"><p class="text-sm font-semibold text-slate-700" id="hDate"></p><p class="text-xs text-slate-400" id="hTime"></p></div>
+      </div>
+    </header>
+    <main class="flex-1 overflow-y-auto bg-slate-50 p-6" id="mainArea"></main>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="fixed inset-0 z-50 hidden modal-bg flex items-center justify-center p-4" onclick="if(event.target===this)closeModal()">
+  <div id="modalBox" class="bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto w-full max-w-lg"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toastBox" class="fixed top-5 right-5 z-[100] space-y-2"></div>
+
+<script>
+// =====================================================
+// URL GOOGLE APPS SCRIPT — TANAM DISINI
+// =====================================================
+const API_URL = 'https://script.google.com/macros/s/AKfycbx0CQGv-Oj1_YX8tJ3u8qOWTrAGUKNHYU3fbnhDmNKI3C1_X-_qVIkMnqr_Iap0MaJF/exec';
+
+// =====================================================
+// STATE
+// =====================================================
+let U = null; // current user
+let produkList = [];
+let cart = [];
+let antrianList = [];
+let transaksiList = [];
+let pelangganList = [];
+let usersList = [];
+let charts = {};
+let pollTimer = null;
+let lastPrintCnt = 0;
+let curPage = '';
+
+// =====================================================
+// API — PERBAIKAN UTAMA: parse TEXT dulu, baru JSON
+// =====================================================
+async function api(action, params) {
+  params = params || {};
+  let url = API_URL + '?action=' + encodeURIComponent(action);
+  for (let k in params) {
+    if (params[k] !== undefined && params[k] !== null) {
+      url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+  }
+  try {
+    const resp = await fetch(url, {redirect:'follow'});
+    const text = await resp.text();
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      console.error('API GET bukan JSON:', text.substring(0, 300));
+      return {success:false, message:'Server mengembalikan respons tidak valid. Pastikan URL Apps Script benar dan sudah di-deploy.'};
+    }
+  } catch (e) {
+    console.error('API GET error:', e);
+    return {success:false, message:'Gagal terhubung ke server: ' + e.message};
+  }
+}
+
+async function apiPost(data) {
+  try {
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: {'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(data)
+    });
+    const text = await resp.text();
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      console.error('API POST bukan JSON:', text.substring(0, 300));
+      return {success:false, message:'Server mengembalikan respons tidak valid.'};
+    }
+  } catch (e) {
+    console.error('API POST error:', e);
+    return {success:false, message:'Gagal mengirim data: ' + e.message};
+  }
+}
+
+// =====================================================
+// UTILS
+// =====================================================
+const rp = n => 'Rp ' + Number(n||0).toLocaleString('id-ID');
+function fmtDate(d) {
+  if (!d) return '-';
+  try { const dt = new Date(d); return dt.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}); }
+  catch(e) { return String(d); }
+}
+function fmtShort(d) {
+  if (!d) return '-';
+  try { return new Date(d).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}); }
+  catch(e) { return String(d); }
+}
+
+function toast(msg, type) {
+  type = type || 'success';
+  const c = {success:'bg-emerald-500',error:'bg-red-500',warning:'bg-amber-500',info:'bg-blue-500'};
+  const ic = {success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
+  const el = document.createElement('div');
+  el.className = 'toast-anim ' + (c[type]||c.info) + ' text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 text-sm font-medium max-w-sm';
+  el.innerHTML = '<span class="text-lg">'+(ic[type]||'ℹ️')+'</span><span>'+msg+'</span>';
+  document.getElementById('toastBox').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+function showModal(html, size) {
+  const b = document.getElementById('modalBox');
+  b.className = 'bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto w-full ' + (size||'max-w-lg');
+  b.innerHTML = html;
+  document.getElementById('modal').classList.remove('hidden');
+}
+function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+function isAdmin() { return U && U.role === 'admin'; }
+
+// =====================================================
+// AUTH
+// =====================================================
+async function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value.trim();
+  if (!u || !p) return toast('Isi username dan password!','warning');
+
+  document.getElementById('loginTxt').textContent = 'Memproses...';
+  document.getElementById('loginSpin').classList.remove('hidden');
+  document.getElementById('btnLogin').disabled = true;
+
+  const res = await api('login', {u:u, p:p});
+
+  document.getElementById('loginTxt').textContent = 'Masuk';
+  document.getElementById('loginSpin').classList.add('hidden');
+  document.getElementById('btnLogin').disabled = false;
+
+  if (res.success) {
+    U = res.user;
+    localStorage.setItem('kasirku_user', JSON.stringify(U));
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('appPage').classList.remove('hidden');
+    startApp();
+  } else {
+    document.getElementById('loginErr').textContent = res.message;
+    document.getElementById('loginErr').classList.remove('hidden');
+    toast(res.message, 'error');
+  }
+}
+
+function doLogout() {
+  if (!confirm('Yakin ingin logout?')) return;
+  U = null;
+  localStorage.removeItem('kasirku_user');
+  if (pollTimer) clearInterval(pollTimer);
+  document.getElementById('appPage').classList.add('hidden');
+  document.getElementById('loginPage').classList.remove('hidden');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginErr').classList.add('hidden');
+}
+
+function checkSession() {
+  try {
+    const s = localStorage.getItem('kasirku_user');
+    if (s) {
+      U = JSON.parse(s);
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('appPage').classList.remove('hidden');
+      startApp();
+    }
+  } catch(e) { localStorage.removeItem('kasirku_user'); }
+}
+
+document.getElementById('loginPass').addEventListener('keypress', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keypress', e => { if(e.key==='Enter') document.getElementById('loginPass').focus(); });
+
+// =====================================================
+// APP INIT
+// =====================================================
+function startApp() {
+  buildSidebar();
+  tickClock();
+  setInterval(tickClock, 1000);
+  go('dashboard');
+  pollTimer = setInterval(pollPrint, 20000);
+  pollPrint();
+}
+
+function tickClock() {
+  const n = new Date();
+  document.getElementById('hDate').textContent = n.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('hTime').textContent = n.toLocaleTimeString('id-ID');
+}
+
+async function pollPrint() {
+  const res = await api('getAntrianPrint');
+  if (!res.success) return;
+  antrianList = res.data;
+  const pend = antrianList.filter(a => a.status==='pending'||a.status==='proses').length;
+  const badge = document.getElementById('printBadge');
+  if (pend > 0) {
+    badge.textContent = pend;
+    badge.classList.remove('hidden');
+    if (pend > lastPrintCnt && lastPrintCnt >= 0) toast('🖨️ '+pend+' print job menunggu!','info');
+  } else {
+    badge.classList.add('hidden');
+  }
+  lastPrintCnt = pend;
+}
+
+// =====================================================
+// SIDEBAR
+// =====================================================
+const MENU = [
+  {id:'dashboard',icon:'📊',label:'Dashboard',r:['admin','kasir']},
+  {id:'pos',icon:'🛒',label:'Kasir / POS',r:['admin','kasir']},
+  {id:'print',icon:'🖨️',label:'Antrian Print',r:['admin','kasir']},
+  {id:'transaksi',icon:'📋',label:'Transaksi',r:['admin','kasir']},
+  {t:'div',r:['admin']},
+  {t:'lbl',label:'ADMIN PANEL',r:['admin']},
+  {id:'produk',icon:'📦',label:'Kelola Produk',r:['admin']},
+  {id:'pelanggan',icon:'👥',label:'Pelanggan',r:['admin']},
+  {id:'users',icon:'🔑',label:'Kelola User',r:['admin']},
+  {id:'log',icon:'📝',label:'Log Aktivitas',r:['admin']},
+  {t:'div',r:['admin','kasir']},
+  {id:'profil',icon:'⚙️',label:'Profil Saya',r:['admin','kasir']}
+];
+
+function buildSidebar() {
+  document.getElementById('sName').textContent = U.nama;
+  document.getElementById('sRole').textContent = U.role==='admin'?'Administrator':'Kasir';
+  document.getElementById('avatarIn').textContent = (U.nama||'?').charAt(0).toUpperCase();
+  let h = '';
+  MENU.forEach(m => {
+    if (!m.r.includes(U.role)) return;
+    if (m.t==='div') { h += '<div class="border-t border-white/10 my-2"></div>'; return; }
+    if (m.t==='lbl') { h += '<p class="text-xs font-bold text-indigo-400 uppercase tracking-wider px-3 py-2">'+m.label+'</p>'; return; }
+    h += '<a href="#" onclick="go(\''+m.id+'\');return false" data-nav="'+m.id+'" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 text-sm font-medium transition-all"><span class="text-lg w-6 text-center">'+m.icon+'</span><span>'+m.label+'</span></a>';
+  });
+  document.getElementById('sideNav').innerHTML = h;
+}
+
+function go(page) {
+  curPage = page;
+  document.querySelectorAll('.sidebar-link').forEach(el => el.classList.toggle('active', el.dataset.nav===page));
+  const T = {
+    dashboard:['Dashboard',isAdmin()?'Ringkasan bisnis':'Ringkasan hari ini'],
+    pos:['Kasir / POS','Buat transaksi baru'],
+    print:['Antrian Print','Kelola antrian print WhatsApp'],
+    transaksi:['Riwayat Transaksi',isAdmin()?'Semua transaksi':'Transaksi Anda'],
+    produk:['Kelola Produk','Tambah, edit, hapus produk'],
+    pelanggan:['Database Pelanggan','Daftar pelanggan'],
+    users:['Kelola User','Manajemen akun'],
+    log:['Log Aktivitas','Riwayat aktivitas sistem'],
+    profil:['Profil Saya','Pengaturan akun']
+  };
+  const t = T[page]||['',''];
+  document.getElementById('pgTitle').textContent = t[0];
+  document.getElementById('pgSub').textContent = t[1];
+  renderPage(page);
+}
+
+// =====================================================
+// ROUTER
+// =====================================================
+async function renderPage(page) {
+  const M = document.getElementById('mainArea');
+  M.innerHTML = '<div class="flex items-center justify-center py-20"><svg class="w-8 h-8 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg><span class="ml-3 text-slate-500">Memuat data...</span></div>';
+  switch(page) {
+    case 'dashboard': await pgDashboard(); break;
+    case 'pos': await pgPOS(); break;
+    case 'print': await pgPrint(); break;
+    case 'transaksi': await pgTransaksi(); break;
+    case 'produk': await pgProduk(); break;
+    case 'pelanggan': await pgPelanggan(); break;
+    case 'users': await pgUsers(); break;
+    case 'log': await pgLog(); break;
+    case 'profil': pgProfil(); break;
+  }
+}
+
+// =====================================================
+// DASHBOARD
+// =====================================================
+async function pgDashboard() {
+  const res = await api('getDashboard', {kasirId: isAdmin()?'all':U.id});
+  if (!res.success) { document.getElementById('mainArea').innerHTML = '<div class="card p-8 text-center"><p class="text-red-500 text-lg font-semibold mb-2">Gagal memuat dashboard</p><p class="text-slate-500 text-sm">'+res.message+'</p><button onclick="go(\'dashboard\')" class="btn-p mt-4 text-sm">Coba Lagi</button></div>'; return; }
+  const d = res.data;
+  let h = `
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+    <div class="card p-5" style="border-left:4px solid #4f46e5"><p class="text-sm text-slate-500">Penjualan Hari Ini</p><p class="text-2xl font-extrabold text-slate-800 mt-1">${rp(d.hariIni.total)}</p><p class="text-xs text-indigo-600 font-semibold mt-1">${d.hariIni.jumlah} transaksi</p></div>
+    <div class="card p-5" style="border-left:4px solid #10b981"><p class="text-sm text-slate-500">Penjualan Bulan Ini</p><p class="text-2xl font-extrabold text-slate-800 mt-1">${rp(d.bulanIni.total)}</p><p class="text-xs text-emerald-600 font-semibold mt-1">${d.bulanIni.jumlah} transaksi</p></div>
+    <div class="card p-5" style="border-left:4px solid #f59e0b"><p class="text-sm text-slate-500">Print Menunggu</p><p class="text-2xl font-extrabold text-slate-800 mt-1">${d.printPending}</p><p class="text-xs text-amber-600 font-semibold mt-1 cursor-pointer" onclick="go('print')">Lihat antrian →</p></div>
+    <div class="card p-5" style="border-left:4px solid #8b5cf6"><p class="text-sm text-slate-500">${isAdmin()?'Total Pelanggan':'Total Produk'}</p><p class="text-2xl font-extrabold text-slate-800 mt-1">${isAdmin()?d.totalPelanggan:d.totalProduk}</p><p class="text-xs text-purple-600 font-semibold mt-1">${d.totalProduk} produk aktif</p></div>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+    <div class="card p-5 lg:col-span-2"><h3 class="font-bold text-slate-800 mb-4">📈 Penjualan 7 Hari Terakhir</h3><canvas id="ch7" height="180"></canvas></div>
+    <div class="card p-5"><h3 class="font-bold text-slate-800 mb-4">💳 Metode Pembayaran</h3><canvas id="chM" height="180"></canvas></div>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <div class="card p-5"><h3 class="font-bold text-slate-800 mb-4">🏆 Produk Terlaris</h3>${d.topProducts.length===0?'<p class="text-slate-400 text-sm">Belum ada data</p>':d.topProducts.map((p,i)=>'<div class="flex items-center justify-between py-2 '+(i<d.topProducts.length-1?'border-b border-slate-100':'')+'"><div class="flex items-center gap-3"><span class="w-7 h-7 rounded-lg '+(i<3?'bg-indigo-100 text-indigo-700':'bg-slate-100 text-slate-600')+' flex items-center justify-center text-xs font-bold">'+(i+1)+'</span><span class="text-sm text-slate-700">'+p.nama+'</span></div><span class="text-sm font-bold text-indigo-600">'+p.qty+' terjual</span></div>').join('')}</div>
+    <div class="card p-5"><h3 class="font-bold text-slate-800 mb-4">⚠️ Stok Menipis</h3>${d.stokMenipis.length===0?'<p class="text-emerald-600 text-sm font-medium">✅ Semua stok aman</p>':d.stokMenipis.map(s=>'<div class="flex items-center justify-between py-2 border-b border-slate-100"><span class="text-sm text-slate-700">'+s.nama+'</span><span class="badge bg-red-100 text-red-700">Sisa: '+s.stok+'</span></div>').join('')}</div>
+  </div>`;
+  if (isAdmin() && d.kasirPerforma) {
+    const kk = Object.keys(d.kasirPerforma);
+    if (kk.length) {
+      h += '<div class="card p-5 mt-5"><h3 class="font-bold text-slate-800 mb-4">👥 Performa Kasir</h3><table class="w-full text-sm"><thead><tr class="border-b border-slate-200"><th class="text-left py-2 text-slate-500 font-semibold">Kasir</th><th class="text-right py-2 text-slate-500 font-semibold">Transaksi</th><th class="text-right py-2 text-slate-500 font-semibold">Total</th></tr></thead><tbody>'+kk.map(k=>'<tr class="border-b border-slate-50"><td class="py-2 font-medium">'+k+'</td><td class="py-2 text-right">'+d.kasirPerforma[k].jumlah+'</td><td class="py-2 text-right font-semibold text-indigo-600">'+rp(d.kasirPerforma[k].total)+'</td></tr>').join('')+'</tbody></table></div>';
+    }
+  }
+  document.getElementById('mainArea').innerHTML = h;
+  setTimeout(()=>{
+    const lbl7 = Object.keys(d.mingguIni).map(k=>{try{return new Date(k).toLocaleDateString('id-ID',{day:'numeric',month:'short'})}catch(e){return k}});
+    const dat7 = Object.values(d.mingguIni);
+    if(charts.c7) charts.c7.destroy();
+    const el7 = document.getElementById('ch7');
+    if(el7) charts.c7 = new Chart(el7,{type:'bar',data:{labels:lbl7,datasets:[{label:'Penjualan',data:dat7,backgroundColor:'rgba(79,70,229,.8)',borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>rp(v)}},x:{grid:{display:false}}}}});
+    const mk = Object.keys(d.metodeBayar||{});
+    if(charts.cM) charts.cM.destroy();
+    const elM = document.getElementById('chM');
+    if(elM && mk.length) charts.cM = new Chart(elM,{type:'doughnut',data:{labels:mk,datasets:[{data:mk.map(k=>d.metodeBayar[k]),backgroundColor:['#4f46e5','#10b981','#f59e0b','#ef4444','#8b5cf6']}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{padding:12,usePointStyle:true}}}}});
+  },150);
+}
+
+// =====================================================
+// POS
+// =====================================================
+let posFilter = 'Semua', posSearch = '';
+
+async function pgPOS() {
+  if (!produkList.length) {
+    const r = await api('getProduk');
+    if (r.success) produkList = r.data.filter(p=>p.status==='aktif');
+  }
+  const cats = ['Semua',...new Set(produkList.map(p=>p.kategori))];
+  document.getElementById('mainArea').innerHTML = `
+  <div class="flex gap-5" style="height:calc(100vh - 155px)">
+    <div class="flex-1 flex flex-col min-w-0">
+      <div class="flex gap-3 mb-4"><div class="relative flex-1"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span><input class="inp pl-10" placeholder="Cari produk..." oninput="posSearch=this.value;renderProds()"></div></div>
+      <div class="flex gap-2 mb-4 flex-wrap">${cats.map(c=>'<button onclick="posFilter=\''+c+'\';renderProds();this.parentElement.querySelectorAll(\'button\').forEach(b=>{b.className=\'px-4 py-2 rounded-xl text-sm font-semibold bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 transition\'});this.className=\'px-4 py-2 rounded-xl text-sm font-semibold bg-indigo-600 text-white transition\'" class="px-4 py-2 rounded-xl text-sm font-semibold transition '+(c===posFilter?'bg-indigo-600 text-white':'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300')+'">'+c+'</button>').join('')}</div>
+      <div id="prodGrid" class="flex-1 overflow-y-auto"></div>
+    </div>
+    <div class="w-96 flex-shrink-0 card flex flex-col">
+      <div class="p-4 border-b border-slate-100"><h3 class="font-bold text-slate-800 flex items-center gap-2">🛒 Keranjang <span id="cartCnt" class="badge bg-indigo-100 text-indigo-700">0</span></h3></div>
+      <div id="cartList" class="flex-1 overflow-y-auto p-4"></div>
+      <div class="border-t border-slate-100 p-4 space-y-3">
+        <div class="flex justify-between text-sm"><span class="text-slate-500">Subtotal</span><span id="cartSub" class="font-semibold">Rp 0</span></div>
+        <div class="flex items-center gap-2"><span class="text-sm text-slate-500">Diskon</span><input type="number" id="cartDisk" class="inp text-right py-1.5 w-28 ml-auto" value="0" min="0" oninput="updCartTot()"></div>
+        <div class="flex justify-between text-lg font-extrabold text-indigo-700 pt-2 border-t border-dashed border-slate-200"><span>TOTAL</span><span id="cartTot">Rp 0</span></div>
+        <button onclick="showPay()" id="btnPay" class="w-full btn-p py-3.5 text-base" disabled>💳 Bayar Sekarang</button>
+        <button onclick="cart=[];renderCart()" class="w-full text-sm text-red-500 hover:text-red-700 font-semibold py-1">🗑️ Kosongkan</button>
+      </div>
+    </div>
+  </div>`;
+  renderProds();
+  renderCart();
+}
+
+function renderProds() {
+  let list = produkList.filter(p=>p.status==='aktif');
+  if (posFilter!=='Semua') list = list.filter(p=>p.kategori===posFilter);
+  if (posSearch) { const s = posSearch.toLowerCase(); list = list.filter(p=>p.nama.toLowerCase().includes(s)); }
+  const ic = {ATK:'✏️',Fotokopi:'📄',Print:'🖨️',Jasa:'🔧'};
+  const cc = {ATK:'from-blue-500 to-blue-600',Fotokopi:'from-emerald-500 to-emerald-600',Print:'from-purple-500 to-purple-600',Jasa:'from-amber-500 to-amber-600'};
+  document.getElementById('prodGrid').innerHTML = list.length===0?'<div class="text-center py-10 text-slate-400"><p class="text-4xl mb-2">📭</p><p>Produk tidak ditemukan</p></div>':'<div class="grid grid-cols-2 xl:grid-cols-3 gap-3">'+list.map(p=>{
+    const inC = cart.find(c=>c.id===p.id);
+    return '<div onclick="addCart(\''+p.id+'\')" class="prod-card card p-4 '+(inC?'ring-2 ring-indigo-500':'')+'"><div class="w-10 h-10 rounded-xl bg-gradient-to-br '+(cc[p.kategori]||'from-slate-500 to-slate-600')+' flex items-center justify-center text-white text-lg mb-3">'+(ic[p.kategori]||'📦')+'</div><h4 class="font-semibold text-slate-800 text-sm leading-tight mb-1">'+p.nama+'</h4><p class="text-xs text-slate-400 mb-2">'+p.kategori+' · '+(p.stok>9000?'∞':p.stok+' '+p.satuan)+'</p><div class="flex items-center justify-between"><span class="font-bold text-indigo-600 text-sm">'+rp(p.harga)+'</span>'+(inC?'<span class="badge bg-indigo-600 text-white">'+inC.qty+'×</span>':'')+'</div></div>';
+  }).join('')+'</div>';
+}
+
+function addCart(id) {
+  const p = produkList.find(x=>x.id===id);
+  if (!p) return;
+  const ex = cart.find(c=>c.id===id);
+  if (ex) { if(ex.qty>=p.stok&&p.stok<=9000){toast('Stok tidak cukup!','warning');return;} ex.qty++; }
+  else cart.push({id:p.id,nama:p.nama,harga:p.harga,qty:1,satuan:p.satuan});
+  renderCart(); renderProds();
+}
+
+function updQty(i,v) { v=parseInt(v); if(v<=0)cart.splice(i,1); else cart[i].qty=v; renderCart(); renderProds(); }
+function rmCart(i) { cart.splice(i,1); renderCart(); renderProds(); }
+
+function renderCart() {
+  document.getElementById('cartCnt').textContent = cart.length;
+  document.getElementById('btnPay').disabled = cart.length===0;
+  if (!cart.length) {
+    document.getElementById('cartList').innerHTML = '<div class="flex flex-col items-center justify-center h-full text-slate-400"><p class="text-4xl mb-2">🛒</p><p class="text-sm">Keranjang kosong</p></div>';
+  } else {
+    document.getElementById('cartList').innerHTML = cart.map((c,i)=>'<div class="flex items-start gap-3 py-3 '+(i<cart.length-1?'border-b border-slate-100':'')+'"><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-slate-800 truncate">'+c.nama+'</p><p class="text-xs text-slate-400">'+rp(c.harga)+' × '+c.qty+'</p></div><div class="flex items-center gap-1"><button onclick="updQty('+i+','+(c.qty-1)+')" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-sm font-bold">−</button><input type="number" value="'+c.qty+'" min="1" onchange="updQty('+i+',this.value)" class="w-10 text-center text-sm font-semibold border rounded-lg py-1"><button onclick="updQty('+i+','+(c.qty+1)+')" class="w-7 h-7 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-700 flex items-center justify-center text-sm font-bold">+</button></div><div class="text-right min-w-[80px]"><p class="text-sm font-bold text-slate-800">'+rp(c.harga*c.qty)+'</p><button onclick="rmCart('+i+')" class="text-xs text-red-500 hover:text-red-700">Hapus</button></div></div>').join('');
+  }
+  updCartTot();
+}
+
+function updCartTot() {
+  const sub = cart.reduce((s,c)=>s+c.harga*c.qty,0);
+  const dk = parseInt(document.getElementById('cartDisk')?.value||0);
+  const tot = Math.max(0,sub-dk);
+  if(document.getElementById('cartSub')) document.getElementById('cartSub').textContent = rp(sub);
+  if(document.getElementById('cartTot')) document.getElementById('cartTot').textContent = rp(tot);
+}
+
+function getCartTot() {
+  const sub = cart.reduce((s,c)=>s+c.harga*c.qty,0);
+  const dk = parseInt(document.getElementById('cartDisk')?.value||0);
+  return {subtotal:sub,diskon:dk,total:Math.max(0,sub-dk)};
+}
+
+// =====================================================
+// PAYMENT
+// =====================================================
+let payMethod = 'Tunai';
+
+function showPay() {
+  if(!cart.length) return;
+  const {subtotal,diskon,total} = getCartTot();
+  const qk = [total,Math.ceil(total/1000)*1000,Math.ceil(total/5000)*5000,Math.ceil(total/10000)*10000,Math.ceil(total/50000)*50000,50000,100000,200000].filter((v,i,a)=>v>=total&&a.indexOf(v)===i).sort((a,b)=>a-b).slice(0,6);
+  payMethod = 'Tunai';
+  showModal(`<div class="p-6">
+    <h3 class="text-xl font-bold text-slate-800 mb-5">💳 Pembayaran</h3>
+    <div class="bg-indigo-50 rounded-xl p-4 mb-5">
+      <div class="flex justify-between text-sm mb-1"><span class="text-slate-600">Subtotal</span><span class="font-semibold">${rp(subtotal)}</span></div>
+      ${diskon>0?'<div class="flex justify-between text-sm mb-1"><span class="text-slate-600">Diskon</span><span class="font-semibold text-red-500">-'+rp(diskon)+'</span></div>':''}
+      <div class="flex justify-between text-lg font-extrabold text-indigo-700 pt-2 border-t border-indigo-200 mt-2"><span>TOTAL</span><span>${rp(total)}</span></div>
+    </div>
+    <div class="mb-4"><label class="block text-sm font-semibold text-slate-700 mb-2">Metode Pembayaran</label>
+      <div class="grid grid-cols-3 gap-2">
+        <button onclick="selPay('Tunai')" id="pm_Tunai" class="px-4 py-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold text-sm">💵 Tunai</button>
+        <button onclick="selPay('Transfer')" id="pm_Transfer" class="px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-semibold text-sm hover:border-indigo-300">🏦 Transfer</button>
+        <button onclick="selPay('QRIS')" id="pm_QRIS" class="px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-semibold text-sm hover:border-indigo-300">📱 QRIS</button>
+      </div>
+    </div>
+    <div id="tunaiSec">
+      <label class="block text-sm font-semibold text-slate-700 mb-2">Jumlah Bayar</label>
+      <input type="number" id="payAmt" class="inp text-right text-lg font-bold mb-3" value="${total}" min="${total}" oninput="calcChg()">
+      <div class="grid grid-cols-3 gap-2 mb-3">${qk.map(q=>'<button onclick="document.getElementById(\'payAmt\').value='+q+';calcChg()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-indigo-100 text-sm font-semibold text-slate-700 hover:text-indigo-700 transition">'+rp(q)+'</button>').join('')}</div>
+      <div class="bg-emerald-50 rounded-xl p-3 text-center"><p class="text-sm text-slate-500">Kembalian</p><p class="text-2xl font-extrabold text-emerald-600" id="chgAmt">Rp 0</p></div>
+    </div>
+    <div class="mt-5 flex gap-3">
+      <button onclick="closeModal()" class="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50">Batal</button>
+      <button onclick="processPay()" id="btnProcPay" class="flex-1 btn-s py-3 text-base">✅ Proses Bayar</button>
+    </div>
+  </div>`,'max-w-md');
+  calcChg();
+}
+
+function selPay(m) {
+  payMethod = m;
+  ['Tunai','Transfer','QRIS'].forEach(x=>{
+    const el = document.getElementById('pm_'+x);
+    if(el) el.className = 'px-4 py-3 rounded-xl border-2 font-semibold text-sm '+(x===m?'border-indigo-600 bg-indigo-50 text-indigo-700':'border-slate-200 text-slate-600 hover:border-indigo-300');
+  });
+  const ts = document.getElementById('tunaiSec');
+  if(ts) ts.style.display = m==='Tunai'?'':'none';
+}
+
+function calcChg() {
+  const {total} = getCartTot();
+  const bay = parseInt(document.getElementById('payAmt')?.value||0);
+  const chg = bay - total;
+  const el = document.getElementById('chgAmt');
+  if(el) { el.textContent = rp(Math.max(0,chg)); el.className = 'text-2xl font-extrabold '+(chg>=0?'text-emerald-600':'text-red-500'); }
+}
+
+async function processPay() {
+  const {subtotal,diskon,total} = getCartTot();
+  const bayar = payMethod==='Tunai'?parseInt(document.getElementById('payAmt')?.value||0):total;
+  if (payMethod==='Tunai'&&bayar<total) return toast('Jumlah bayar kurang!','error');
+
+  const btn = document.getElementById('btnProcPay');
+  if(btn){btn.disabled=true;btn.textContent='Memproses...';}
+
+  const data = {action:'simpanTransaksi',kasirId:U.id,kasirNama:U.nama,items:cart,subtotal:subtotal,diskon:diskon,total:total,bayar:bayar,kembalian:Math.max(0,bayar-total),metodeBayar:payMethod};
+  const res = await apiPost(data);
+  if (res.success) {
+    toast('Transaksi berhasil! '+res.id);
+    closeModal();
+    showReceipt({...data,id:res.id,tanggal:new Date()});
+    cart = [];
+    renderCart(); renderProds();
+    const pr = await api('getProduk');
+    if(pr.success) produkList = pr.data.filter(p=>p.status==='aktif');
+  } else {
+    toast(res.message||'Gagal menyimpan','error');
+    if(btn){btn.disabled=false;btn.textContent='✅ Proses Bayar';}
+  }
+}
+
+// =====================================================
+// RECEIPT
+// =====================================================
+function showReceipt(trx) {
+  let items = [];
+  try { items = typeof trx.items==='string'?JSON.parse(trx.items):trx.items; } catch(e){}
+  showModal(`<div class="p-6">
+    <div class="text-center mb-1"><h3 class="text-lg font-bold">✅ Transaksi Berhasil!</h3></div>
+    <div id="rcContent" class="bg-white border-2 border-dashed border-slate-300 rounded-xl p-5 my-4" style="font-family:monospace;font-size:13px">
+      <div class="text-center mb-3"><p class="font-bold text-base">TOKO ATK & FOTOKOPI</p><p class="text-xs text-slate-500">Jl. Contoh No. 123</p><p class="text-xs text-slate-500">Telp: 08xx-xxxx-xxxx</p></div>
+      <div class="border-t border-dashed border-slate-300 my-2"></div>
+      <div class="text-xs space-y-0.5"><p>No  : ${trx.id||'-'}</p><p>Tgl : ${fmtDate(trx.tanggal)}</p><p>Kasir: ${trx.kasirNama}</p></div>
+      <div class="border-t border-dashed border-slate-300 my-2"></div>
+      ${items.map(it=>'<div class="flex justify-between text-xs py-0.5"><span class="flex-1">'+it.nama+'</span><span class="w-24 text-right">'+it.qty+'×'+rp(it.harga)+'</span><span class="w-20 text-right font-bold">'+rp(it.harga*it.qty)+'</span></div>').join('')}
+      <div class="border-t border-dashed border-slate-300 my-2"></div>
+      <div class="text-xs space-y-0.5">
+        <div class="flex justify-between"><span>Subtotal</span><span>${rp(trx.subtotal)}</span></div>
+        ${trx.diskon>0?'<div class="flex justify-between"><span>Diskon</span><span>-'+rp(trx.diskon)+'</span></div>':''}
+        <div class="flex justify-between font-bold text-sm"><span>TOTAL</span><span>${rp(trx.total)}</span></div>
+        <div class="flex justify-between"><span>Bayar (${trx.metodeBayar})</span><span>${rp(trx.bayar)}</span></div>
+        <div class="flex justify-between"><span>Kembalian</span><span>${rp(trx.kembalian)}</span></div>
+      </div>
+      <div class="border-t border-dashed border-slate-300 my-2"></div>
+      <div class="text-center text-xs text-slate-500"><p>Terima kasih atas kunjungan Anda!</p></div>
+    </div>
+    <div class="flex gap-3"><button onclick="closeModal()" class="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-semibold">Tutup</button><button onclick="printRC()" class="flex-1 btn-p py-3">🖨️ Cetak Struk</button></div>
+  </div>`,'max-w-sm');
+}
+
+function printRC() {
+  const c = document.getElementById('rcContent');
+  if(!c) return;
+  const w = window.open('','_blank','width=350,height=600');
+  w.document.write('<html><head><title>Struk</title><style>body{font-family:monospace;font-size:12px;margin:10px;width:280px}.flex{display:flex}.justify-between{justify-content:space-between}.text-center{text-align:center}.font-bold{font-weight:bold}.text-xs{font-size:11px}.text-sm{font-size:12px}.text-base{font-size:14px}.border-t{border-top:1px dashed #999;margin:5px 0}.my-2{margin:5px 0}.py-0\\.5{padding:2px 0}.flex-1{flex:1}.w-20,.w-24{min-width:60px}.text-right{text-align:right}.text-slate-500{color:#666}.space-y-0\\.5>*+*{margin-top:2px}.mb-3{margin-bottom:8px}</style></head><body>'+c.innerHTML+'<script>window.print();setTimeout(function(){window.close()},1000)<\/script></body></html>');
+}
+
+// =====================================================
+// ANTRIAN PRINT
+// =====================================================
+async function pgPrint() {
+  const res = await api('getAntrianPrint');
+  if(res.success) antrianList = res.data;
+  const pending = antrianList.filter(a=>a.status==='pending');
+  const proses = antrianList.filter(a=>a.status==='proses');
+  const selesai = antrianList.filter(a=>a.status==='selesai');
+  const sc = {pending:'bg-amber-100 text-amber-700',proses:'bg-blue-100 text-blue-700',selesai:'bg-emerald-100 text-emerald-700',batal:'bg-red-100 text-red-700'};
+
+  document.getElementById('mainArea').innerHTML = `
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="card p-4 text-center" style="border-left:4px solid #f59e0b"><p class="text-2xl font-extrabold text-amber-600">${pending.length}</p><p class="text-sm text-slate-500">Menunggu</p></div>
+    <div class="card p-4 text-center" style="border-left:4px solid #3b82f6"><p class="text-2xl font-extrabold text-blue-600">${proses.length}</p><p class="text-sm text-slate-500">Diproses</p></div>
+    <div class="card p-4 text-center" style="border-left:4px solid #10b981"><p class="text-2xl font-extrabold text-emerald-600">${selesai.length}</p><p class="text-sm text-slate-500">Selesai</p></div>
+  </div>
+  <div class="card">
+    <div class="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
+      <h3 class="font-bold text-slate-800">Daftar Antrian Print</h3>
+      <div class="flex gap-2">
+        <button onclick="pgPrint()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 text-sm font-semibold hover:bg-slate-200">🔄 Refresh</button>
+        <button onclick="showAddPJ()" class="btn-p text-sm py-2">+ Tambah Manual</button>
+      </div>
+    </div>
+    <div class="overflow-x-auto"><table class="w-full text-sm">
+      <thead><tr class="bg-slate-50"><th class="text-left p-3 font-semibold text-slate-500">ID</th><th class="text-left p-3 font-semibold text-slate-500">Tanggal</th><th class="text-left p-3 font-semibold text-slate-500">Pelanggan</th><th class="text-left p-3 font-semibold text-slate-500">File</th><th class="text-left p-3 font-semibold text-slate-500">Spec</th><th class="text-left p-3 font-semibold text-slate-500">Harga</th><th class="text-left p-3 font-semibold text-slate-500">Status</th><th class="text-left p-3 font-semibold text-slate-500">Aksi</th></tr></thead>
+      <tbody>${antrianList.length===0?'<tr><td colspan="8" class="p-8 text-center text-slate-400">Belum ada antrian</td></tr>':antrianList.map(a=>'<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-3 font-mono text-xs">'+a.id+'</td><td class="p-3 text-xs">'+fmtDate(a.tanggal)+'</td><td class="p-3"><p class="font-semibold">'+a.nama+'</p><p class="text-xs text-slate-400">'+(a.noHP||'-')+'</p></td><td class="p-3">'+(a.urlFile?'<a href="'+a.urlFile+'" target="_blank" class="text-indigo-600 hover:underline text-xs font-semibold">'+(a.namaFile||'File')+'</a>':'<span class="text-xs">'+(a.namaFile||'-')+'</span>')+'</td><td class="p-3 text-xs">'+a.jumlah+' lbr · '+a.warna+' · '+a.ukuran+'</td><td class="p-3 font-semibold">'+(a.harga?rp(a.harga):'-')+'</td><td class="p-3"><span class="badge '+(sc[a.status]||'bg-slate-100 text-slate-600')+'">'+a.status+'</span></td><td class="p-3"><div class="flex gap-1">'+(a.status==='pending'?'<button onclick="updPJ(\''+a.id+'\',\'proses\')" class="px-2 py-1 rounded-lg bg-blue-100 text-blue-700 text-xs font-semibold hover:bg-blue-200">▶ Proses</button>':'')+(a.status==='proses'?'<button onclick="showDonePJ(\''+a.id+'\')" class="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-xs font-semibold hover:bg-emerald-200">✅ Selesai</button>':'')+(a.status!=='selesai'&&a.status!=='batal'?'<button onclick="updPJ(\''+a.id+'\',\'batal\')" class="px-2 py-1 rounded-lg bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200">✕</button>':'')+(a.urlFile?'<a href="'+a.urlFile+'" target="_blank" class="px-2 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">📂</a>':'')+'</div></td></tr>').join('')}</tbody>
+    </table></div>
+  </div>`;
+}
+
+async function updPJ(id,status) {
+  const res = await apiPost({action:'updatePrintQueue',id:id,status:status,diprosesOleh:U.nama,userId:U.id,username:U.nama});
+  if(res.success){toast('Status diupdate');pgPrint();}else toast(res.message,'error');
+}
+
+function showDonePJ(id) {
+  const job = antrianList.find(a=>a.id===id);
+  showModal(`<div class="p-6"><h3 class="text-lg font-bold mb-4">✅ Selesaikan Print Job</h3>
+    <div class="bg-slate-50 rounded-xl p-4 mb-4 text-sm space-y-1"><p><span class="text-slate-500">File:</span> <span class="font-semibold">${job?.namaFile||'-'}</span></p><p><span class="text-slate-500">Spec:</span> <span class="font-semibold">${job?.jumlah||0} lbr · ${job?.warna||'BW'} · ${job?.ukuran||'A4'}</span></p><p><span class="text-slate-500">Pelanggan:</span> <span class="font-semibold">${job?.nama||'-'}</span></p></div>
+    <label class="block text-sm font-semibold text-slate-700 mb-2">Total Harga</label><input type="number" id="pjPrice" class="inp mb-4" value="${job?.harga||0}" placeholder="Masukkan harga">
+    <div class="flex gap-3"><button onclick="closeModal()" class="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-semibold">Batal</button><button onclick="donePJ('${id}')" class="flex-1 btn-s py-3">Selesai & Kirim WA</button></div>
+  </div>`,'max-w-sm');
+}
+
+async function donePJ(id) {
+  const harga = parseInt(document.getElementById('pjPrice')?.value||0);
+  const res = await apiPost({action:'updatePrintQueue',id:id,status:'selesai',harga:harga,diprosesOleh:U.nama,userId:U.id,username:U.nama});
+  if(res.success){toast('Print selesai! WA terkirim.');closeModal();pgPrint();}else toast(res.message,'error');
+}
+
+function showAddPJ() {
+  showModal(`<div class="p-6"><h3 class="text-lg font-bold mb-4">🖨️ Tambah Print Manual</h3>
+    <div class="space-y-3">
+      <div><label class="block text-sm font-semibold text-slate-700 mb-1">Nama Pelanggan</label><input id="aj_nm" class="inp" placeholder="Nama"></div>
+      <div><label class="block text-sm font-semibold text-slate-700 mb-1">No HP</label><input id="aj_hp" class="inp" placeholder="08xxx"></div>
+      <div><label class="block text-sm font-semibold text-slate-700 mb-1">Nama File</label><input id="aj_fl" class="inp" placeholder="Dokumen.pdf"></div>
+      <div class="grid grid-cols-3 gap-3">
+        <div><label class="block text-sm font-semibold text-slate-700 mb-1">Jumlah</label><input id="aj_jm" type="number" class="inp" value="1"></div>
+        <div><label class="block text-sm font-semibold text-slate-700 mb-1">Warna</label><select id="aj_wr" class="inp"><option>BW</option><option>Warna</option></select></div>
+        <div><label class="block text-sm font-semibold text-slate-700 mb-1">Ukuran</label><select id="aj_uk" class="inp"><option>A4</option><option>F4</option><option>A3</option></select></div>
+      </div>
+      <div><label class="block text-sm font-semibold text-slate-700 mb-1">Catatan</label><input id="aj_ct" class="inp" placeholder="Opsional"></div>
+    </div>
+    <div class="flex gap-3 mt-5"><button onclick="closeModal()" class="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-semibold">Batal</button><button onclick="saveAddPJ()" class="flex-1 btn-p py-3">Simpan</button></div>
+  </div>`,'max-w-md');
+}
+
+async function saveAddPJ() {
+  const d = {action:'tambahPrintJob',nama:document.getElementById('aj_nm').value,noHP:document.getElementById('aj_hp').value,namaFile:document.getElementById('aj_fl').value,jumlah:document.getElementById('aj_jm').value,warna:document.getElementById('aj_wr').value,ukuran:document.getElementById('aj_uk').value,catatan:document.getElementById('aj_ct').value};
+  if(!d.nama) return toast('Nama wajib diisi','warning');
+  const res = await apiPost(d);
+  if(res.success){toast('Print job ditambahkan');closeModal();pgPrint();}else toast(res.message,'error');
+}
+
+// =====================================================
+// TRANSAKSI
+// =====================================================
+async function pgTransaksi() {
+  const kid = isAdmin()?'all':U.id;
+  const res = await api('getTransaksi',{kasirId:kid});
+  if(res.success) transaksiList = res.data;
+
+  document.getElementById('mainArea').innerHTML = `<div class="card">
+    <div class="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
+      <h3 class="font-bold text-slate-800">${isAdmin()?'Semua Transaksi':'Transaksi Saya'} (${transaksiList.length})</h3>
+      <div class="flex gap-2 items-center flex-wrap"><input type="date" id="trxD1" class="inp py-2 w-auto"><span class="text-slate-400">—</span><input type="date" id="trxD2" class="inp py-2 w-auto"><button onclick="filterTrx()" class="px-4 py-2 rounded-xl bg-indigo-100 text-indigo-700 text-sm font-semibold hover:bg-indigo-200">Filter</button></div>
+    </div>
+    <div class="overflow-x-auto" id="trxBody">${renderTrxTbl(transaksiList)}</div>
+  </div>`;
+}
+
+function renderTrxTbl(list) {
+  if(!list.length) return '<div class="p-8 text-center text-slate-400">Belum ada transaksi</div>';
+  return '<table class="w-full text-sm"><thead><tr class="bg-slate-50"><th class="text-left p-3 font-semibold text-slate-500">ID</th><th class="text-left p-3 font-semibold text-slate-500">Tanggal</th>'+(isAdmin()?'<th class="text-left p-3 font-semibold text-slate-500">Kasir</th>':'')+'<th class="text-left p-3 font-semibold text-slate-500">Items</th><th class="text-right p-3 font-semibold text-slate-500">Total</th><th class="text-left p-3 font-semibold text-slate-500">Bayar</th><th class="text-left p-3 font-semibold text-slate-500">Aksi</th></tr></thead><tbody>'+list.map(t=>{
+    let items=[]; try{items=typeof t.items==='string'?JSON.parse(t.items):t.items;}catch(e){}
+    return '<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-3 font-mono text-xs">'+t.id+'</td><td class="p-3 text-xs">'+fmtDate(t.tanggal)+'</td>'+(isAdmin()?'<td class="p-3">'+t.kasirNama+'</td>':'')+'<td class="p-3 text-xs">'+items.length+' item</td><td class="p-3 text-right font-bold text-indigo-600">'+rp(t.total)+'</td><td class="p-3"><span class="badge '+(t.metodeBayar==='Tunai'?'bg-emerald-100 text-emerald-700':t.metodeBayar==='Transfer'?'bg-blue-100 text-blue-700':'bg-purple-100 text-purple-700')+'">'+t.metodeBayar+'</span></td><td class="p-3"><button onclick="viewTrx(\''+t.id+'\')" class="px-3 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">🧾 Detail</button></td></tr>';
+  }).join('')+'</tbody></table>';
+}
+
+function viewTrx(id) {
+  const t = transaksiList.find(x=>x.id===id);
+  if(t) showReceipt(t);
+}
+
+async function filterTrx() {
+  const d1 = document.getElementById('trxD1').value;
+  const d2 = document.getElementById('trxD2').value;
+  const res = await api('getTransaksi',{kasirId:isAdmin()?'all':U.id,dari:d1,sampai:d2});
+  if(res.success){transaksiList=res.data;document.getElementById('trxBody').innerHTML=renderTrxTbl(transaksiList);}
+}
+
+// =====================================================
+// PRODUK (ADMIN)
+// =====================================================
+async function pgProduk() {
+  const res = await api('getProduk');
+  if(res.success) produkList = res.data;
+  const all = res.success?res.data:[];
+  document.getElementById('mainArea').innerHTML = `<div class="card">
+    <div class="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
+      <h3 class="font-bold text-slate-800">Daftar Produk (${all.length})</h3>
+      <div class="flex gap-2"><input type="text" id="pSch" class="inp py-2 w-60" placeholder="🔍 Cari produk..." oninput="filterProdTbl()"><button onclick="showProdForm()" class="btn-p text-sm py-2">+ Tambah Produk</button></div>
+    </div>
+    <div class="overflow-x-auto" id="prodTblBody">${renderProdTbl(all)}</div>
+  </div>`;
+}
+
+function renderProdTbl(list) {
+  return '<table class="w-full text-sm"><thead><tr class="bg-slate-50"><th class="text-left p-3 font-semibold text-slate-500">ID</th><th class="text-left p-3 font-semibold text-slate-500">Nama</th><th class="text-left p-3 font-semibold text-slate-500">Kategori</th><th class="text-right p-3 font-semibold text-slate-500">Harga</th><th class="text-right p-3 font-semibold text-slate-500">Stok</th><th class="text-left p-3 font-semibold text-slate-500">Status</th><th class="text-left p-3 font-semibold text-slate-500">Aksi</th></tr></thead><tbody>'+list.map(p=>'<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-3 font-mono text-xs">'+p.id+'</td><td class="p-3 font-semibold">'+p.nama+'</td><td class="p-3"><span class="badge bg-indigo-100 text-indigo-700">'+p.kategori+'</span></td><td class="p-3 text-right font-semibold">'+rp(p.harga)+'</td><td class="p-3 text-right '+(p.minStok>0&&p.stok<=p.minStok?'text-red-600 font-bold':'')+'">'+(p.stok>9000?'∞':p.stok)+' '+p.satuan+'</td><td class="p-3"><span class="badge '+(p.status==='aktif'?'bg-emerald-100 text-emerald-700':'bg-red-100 text-red-700')+'">'+p.status+'</span></td><td class="p-3"><div class="flex gap-1"><button onclick="showProdForm(produkList.find(x=>x.id===\''+p.id+'\'))" class="px-2 py-1 rounded-lg bg-blue-100 text-blue-700 text-xs font-semibold hover:bg-blue-200">✏️</button><button onclick="delProd(\''+p.id+'\',\''+p.nama.replace(/'/g,"\\'")+'\')" class="px-2 py-1 rounded-lg bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200">🗑️</button></div></td></tr>').join('')+'</tbody></table>';
+}
+
+function filterProdTbl() {
+  const s = (document.getElementById('pSch')?.value||'').toLowerCase();
+  const f = produkList.filter(p=>p.nama.toLowerCase().includes(s)||p.kategori.toLowerCase().includes(s));
+  document.getElementById('prodTblBody').innerHTML = renderProdTbl(f);
+}
+
+function showProdForm(p) {
+  const e = !!p;
+  showModal(`<div class="p-6"><h3 class="text-lg font-bold mb-4">${e?'✏️ Edit':'➕ Tambah'} Produk</h3>
+    <div class="space-y-3">
+      <div><label class="block text-sm font-semibold text-slate-700 mb-1">Nama</label><input id="fp_nm" class="inp" value="${p?.nama||''}" placeholder="Nama produk"></div>
+      <div><label class="block text-sm font-semibold text-slate-700 mb-1">Kategori</label><select id="fp_kt" class="inp"><option ${p?.kategori==='ATK'?'selected':''}>ATK</option><option ${p?.kategori==='Fotokopi'?'selected':''}>Fotokopi</option><option ${p?.kategori==='Print'?'selected':''}>Print</option><option ${p?.kategori==='Jasa'?'selected':''}>Jasa</option></select></div>
+      <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm font-semibold text-slate-700 mb-1">Harga</label><input id="fp_hr" type="number" class="inp" value="${p?.harga||''}" placeholder="0"></div><div><label class="block text-sm font-semibold text-slate-700 mb-1">Stok</label><input id="fp_sk" type="number" class="inp" value="${p?.stok||''}" placeholder="0"></div></div>
+      <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm font-semibold text-slate-700 mb-1">Satuan</label><input id="fp_st" class="inp" value="${p?.satuan||'pcs'}" placeholder="pcs"></div><div><label class="block text-sm font-semibold text-slate-700 mb-1">Min Stok</label><input id="fp_ms" type="number" class="inp" value="${p?.minStok||0}"></div></div>
+      <div><label class="block text-sm font-semibold text-slate-700 mb-1">Status</label><select id="fp_ss" class="inp"><option value="aktif" ${p?.status==='aktif'?'selected':''}>Aktif</option><option value="nonaktif" ${p?.status==='nonaktif'?'selected':''}>Nonaktif</option></select></div>
+    </div>
+    <div class="flex gap-3 mt-5"><button onclick="closeModal()" class="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-semibold">Batal</button><button onclick="saveProd('${p?.id||''}')" class="flex-1 btn-p py-3">Simpan</button></div>
+  </div>`,'max-w-md');
+}
+
+async function saveProd(id) {
+  const d = {action:'simpanProduk',id:id||undefined,nama:document.getElementById('fp_nm').value,kategori:document.getElementById('fp_kt').value,harga:document.getElementById('fp_hr').value,stok:document.getElementById('fp_sk').value,satuan:document.getElementById('fp_st').value,minStok:document.getElementById('fp_ms').value,status:document.getElementById('fp_ss').value,userId:U.id,username:U.nama};
+  if(!d.nama||!d.harga) return toast('Nama dan harga wajib diisi','warning');
+  const res = await apiPost(d);
+  if(res.success){toast(res.message);closeModal();pgProduk();}else toast(res.message,'error');
+}
+
+async function delProd(id,nama) {
+  if(!confirm('Hapus produk "'+nama+'"?')) return;
+  const res = await apiPost({action:'hapusProduk',id:id,userId:U.id,username:U.nama});
+  if(res.success){toast('Produk dihapus');pgProduk();}else toast(res.message,'error');
+}
+
+// =====================================================
+// PELANGGAN (ADMIN)
+// =====================================================
+async function pgPelanggan() {
+  const res = await api('getPelanggan');
+  if(res.success) pelangganList = res.data;
+  const list = res.success?res.data:[];
+  document.getElementById('mainArea').innerHTML = `<div class="card">
+    <div class="p-4 border-b border-slate-100 flex items-center justify-between"><h3 class="font-bold text-slate-800">Pelanggan (${list.length})</h3><input class="inp py-2 w-60" placeholder="🔍 Cari..." oninput="filterCust(this.value)"></div>
+    <div class="overflow-x-auto" id="custBody">${renderCustTbl(list)}</div>
+  </div>`;
+}
+
+function renderCustTbl(list) {
+  if(!list.length) return '<div class="p-8 text-center text-slate-400">Belum ada data</div>';
+  return '<table class="w-full text-sm"><thead><tr class="bg-slate-50"><th class="text-left p-3 font-semibold text-slate-500">Nama</th><th class="text-left p-3 font-semibold text-slate-500">No HP</th><th class="text-right p-3 font-semibold text-slate-500">Transaksi</th><th class="text-right p-3 font-semibold text-slate-500">Total Belanja</th><th class="text-left p-3 font-semibold text-slate-500">Terakhir</th></tr></thead><tbody>'+list.map(p=>'<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-3 font-semibold">'+p.nama+'</td><td class="p-3 text-slate-500">'+p.noHP+'</td><td class="p-3 text-right">'+p.totalTransaksi+'×</td><td class="p-3 text-right font-semibold text-indigo-600">'+rp(p.totalBelanja)+'</td><td class="p-3 text-xs text-slate-400">'+fmtShort(p.terakhir)+'</td></tr>').join('')+'</tbody></table>';
+}
+
+function filterCust(s) {
+  s = s.toLowerCase();
+  const f = pelangganList.filter(p=>p.nama.toLowerCase().includes(s)||p.noHP.includes(s));
+  document.getElementById('custBody').innerHTML = renderCustTbl(f);
+}
+
+// =====================================================
+// USERS (ADMIN)
+// =====================================================
+async function pgUsers() {
+  const res = await api('getUsers');
+  if(res.success) usersList = res.data;
+  const list = res.success?res.data:[];
+  document.getElementById('mainArea').innerHTML = `<div class="card">
+    <div class="p-4 border-b border-slate-100 flex items-center justify-between"><h3 class="font-bold text-slate-800">User (${list.length})</h3><button onclick="showUserForm()" class="btn-p text-sm py-2">+ Tambah User</button></div>
+    <div class="overflow-x-auto"><table class="w-full text-sm">
+      <thead><tr class="bg-slate-50"><th class="text-left p-3 font-semibold text-slate-500">ID</th><th class="text-left p-3 font-semibold text-slate-500">Username</th><th class="text-left p-3 font-semibold text-slate-500">Nama</th><th class="text-left p-3 font-semibold text-slate-500">Role</th><th class="text-left p-3 font-semibold text-slate-500">Status</th><th class="text-left p-3 font-semibold text-slate-500">Aksi</th></tr></thead>
+      <tbody>${list.map(u=>'<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-3 font-mono text-xs">'+u.id+'</td><td class="p-3 font-semibold">'+u.username+'</td><td class="p-3">'+u.nama+'</td><td class="p-3"><span class="badge '+(u.role==='admin'?'bg-purple-100 text-purple-700':'bg-blue-100 text-blue-700')+'">'+(u.role==='admin'?'👑 Admin':'🧑 Kasir')+'</span></td><td class="p-3"><span class="badge '+(u.status==='aktif'?'bg-emerald-100 text-emerald-700':'bg-red-100 text-red-700')+'">'+u.status+'</span></td><td class="p-3"><div class="flex gap-1"><button onclick="showUserForm(usersList.find(x=>x.id===\''+u.id+'\'))" class="px-2 py-1 rounded-lg bg-blue-100 text-blue-700 text-xs font-semibold hover:bg-blue-200">✏️</button><button onclick="delUser(\''+u.id+'\',\''+u.username+'\')" class="px-2 py-1 rounded-lg bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200">🗑️</button></div></td></tr>').join('')}</tbody>
+    </table></div>
+  </div>`;
+}
+
+function showUserForm(u) {
+  const e = !!u;
+  showModal(`<div class="p-6"><h3 class="text-lg font-bold mb-4">${e?'✏️ Edit':'➕ Tambah'} User</h3>
+    <div class="space-y-3">
+      <div><label class="block text-sm font-semibold text-slate-700 mb-1">Username</label><input id="fu_us" class="inp" value="${u?.username||''}" ${e?'readonly':''}></div>
+      <div><label class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap</label><input id="fu_nm" class="inp" value="${u?.nama||''}"></div>
+      <div><label class="block text-sm font-semibold text-slate-700 mb-1">${e?'Password Baru (kosongkan jika tidak diubah)':'Password'}</label><input id="fu_pw" type="password" class="inp" placeholder="${e?'Kosongkan jika tidak diubah':'Password'}"></div>
+      <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm font-semibold text-slate-700 mb-1">Role</label><select id="fu_rl" class="inp"><option value="kasir" ${u?.role==='kasir'?'selected':''}>Kasir</option><option value="admin" ${u?.role==='admin'?'selected':''}>Admin</option></select></div><div><label class="block text-sm font-semibold text-slate-700 mb-1">Status</label><select id="fu_st" class="inp"><option value="aktif" ${u?.status==='aktif'?'selected':''}>Aktif</option><option value="nonaktif" ${u?.status==='nonaktif'?'selected':''}>Nonaktif</option></select></div></div>
+    </div>
+    <div class="flex gap-3 mt-5"><button onclick="closeModal()" class="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-semibold">Batal</button><button onclick="saveUser('${u?.id||''}')" class="flex-1 btn-p py-3">Simpan</button></div>
+  </div>`,'max-w-md');
+}
+
+async function saveUser(id) {
+  const d = {action:'simpanUser',id:id||undefined,username:document.getElementById('fu_us').value,nama:document.getElementById('fu_nm').value,password:document.getElementById('fu_pw').value||undefined,role:document.getElementById('fu_rl').value,status:document.getElementById('fu_st').value,adminId:U.id,adminName:U.nama};
+  if(!d.username||!d.nama) return toast('Username dan nama wajib','warning');
+  if(!id&&!d.password) return toast('Password wajib untuk user baru','warning');
+  const res = await apiPost(d);
+  if(res.success){toast(res.message);closeModal();pgUsers();}else toast(res.message,'error');
+}
+
+async function delUser(id,name) {
+  if(!confirm('Hapus user "'+name+'"?')) return;
+  const res = await apiPost({action:'hapusUser',id:id,adminId:U.id,adminName:U.nama});
+  if(res.success){toast('User dihapus');pgUsers();}else toast(res.message,'error');
+}
+
+// =====================================================
+// LOG (ADMIN)
+// =====================================================
+async function pgLog() {
+  const res = await api('getLog');
+  const list = res.success?res.data:[];
+  const ac = {LOGIN:'bg-blue-100 text-blue-700',TRANSAKSI:'bg-emerald-100 text-emerald-700',TAMBAH_PRODUK:'bg-indigo-100 text-indigo-700',EDIT_PRODUK:'bg-amber-100 text-amber-700',HAPUS_PRODUK:'bg-red-100 text-red-700',PRINT:'bg-purple-100 text-purple-700',TAMBAH_USER:'bg-teal-100 text-teal-700',EDIT_USER:'bg-amber-100 text-amber-700',HAPUS_USER:'bg-red-100 text-red-700',GANTI_PASSWORD:'bg-slate-100 text-slate-700'};
+  document.getElementById('mainArea').innerHTML = `<div class="card">
+    <div class="p-4 border-b border-slate-100"><h3 class="font-bold text-slate-800">Log Aktivitas (${list.length} terbaru)</h3></div>
+    <div class="overflow-x-auto"><table class="w-full text-sm">
+      <thead><tr class="bg-slate-50"><th class="text-left p-3 font-semibold text-slate-500">Waktu</th><th class="text-left p-3 font-semibold text-slate-500">User</th><th class="text-left p-3 font-semibold text-slate-500">Aksi</th><th class="text-left p-3 font-semibold text-slate-500">Detail</th></tr></thead>
+      <tbody>${!list.length?'<tr><td colspan="4" class="p-8 text-center text-slate-400">Belum ada log</td></tr>':list.map(l=>'<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-3 text-xs text-slate-500">'+fmtDate(l.tanggal)+'</td><td class="p-3 font-semibold">'+l.username+'</td><td class="p-3"><span class="badge '+(ac[l.aksi]||'bg-slate-100 text-slate-600')+'">'+l.aksi+'</span></td><td class="p-3 text-xs text-slate-600">'+l.detail+'</td></tr>').join('')}</tbody>
+    </table></div>
+  </div>`;
+}
+
+// =====================================================
+// PROFIL
+// =====================================================
+function pgProfil() {
+  document.getElementById('mainArea').innerHTML = `<div class="max-w-lg">
+    <div class="card p-6 mb-5">
+      <div class="flex items-center gap-4 mb-5">
+        <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center text-white text-2xl font-extrabold">${(U.nama||'?').charAt(0).toUpperCase()}</div>
+        <div><h3 class="text-xl font-bold text-slate-800">${U.nama}</h3><p class="text-slate-500">@${U.username}</p><span class="badge ${U.role==='admin'?'bg-purple-100 text-purple-700':'bg-blue-100 text-blue-700'} mt-1">${U.role==='admin'?'👑 Admin':'🧑 Kasir'}</span></div>
+      </div>
+      <div class="border-t border-slate-100 pt-4 space-y-2 text-sm"><div class="flex justify-between"><span class="text-slate-500">ID</span><span class="font-semibold">${U.id}</span></div><div class="flex justify-between"><span class="text-slate-500">Username</span><span class="font-semibold">${U.username}</span></div><div class="flex justify-between"><span class="text-slate-500">Role</span><span class="font-semibold">${U.role}</span></div></div>
+    </div>
+    <div class="card p-6"><h3 class="text-lg font-bold text-slate-800 mb-4">🔒 Ganti Password</h3>
+      <div class="space-y-3">
+        <div><label class="block text-sm font-semibold text-slate-700 mb-1">Password Lama</label><input type="password" id="op" class="inp"></div>
+        <div><label class="block text-sm font-semibold text-slate-700 mb-1">Password Baru</label><input type="password" id="np" class="inp"></div>
+        <div><label class="block text-sm font-semibold text-slate-700 mb-1">Konfirmasi</label><input type="password" id="np2" class="inp"></div>
+        <button onclick="chgPwd()" class="btn-p py-3 w-full">Simpan Password</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function chgPwd() {
+  const o=document.getElementById('op').value, n=document.getElementById('np').value, n2=document.getElementById('np2').value;
+  if(!o||!n) return toast('Isi semua field','warning');
+  if(n!==n2) return toast('Password baru tidak cocok','error');
+  if(n.length<4) return toast('Password minimal 4 karakter','warning');
+  const res = await apiPost({action:'ubahPassword',userId:U.id,passwordLama:o,passwordBaru:n});
+  if(res.success){toast('Password berhasil diubah!');document.getElementById('op').value='';document.getElementById('np').value='';document.getElementById('np2').value='';}else toast(res.message,'error');
+}
+
+// =====================================================
+// SHORTCUTS
+// =====================================================
+document.addEventListener('keydown', e => {
+  if(!U) return;
+  if(e.key==='Escape') closeModal();
+  if(e.key==='F2'){e.preventDefault();go('pos');}
+  if(e.key==='F3'){e.preventDefault();go('print');}
+  if(e.key==='F9'){e.preventDefault();if(curPage==='pos'&&cart.length)showPay();}
+});
+
+// =====================================================
+// INIT
+// =====================================================
+document.addEventListener('DOMContentLoaded', checkSession);
+</script>
+</body>
+</html>
